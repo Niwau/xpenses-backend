@@ -1,26 +1,42 @@
-import { Injectable } from '@nestjs/common';
-import { UnauthorizedException } from '@nestjs/common/exceptions';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
-import bcrypt from 'bcrypt'
+import { UserDto } from 'src/users/users.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService){}
 
-  async validateUser(email: string, password: string) {
-    const user = this.usersService.findUser(email)
+  constructor(private readonly usersService: UsersService){}
 
-    if (!user) {
-      throw new UnauthorizedException('The user does not exists')
+  async register(user: UserDto) {
+
+    await this.usersService.validateUser(user)
+
+    const { name, email, password } = user;
+
+    const userExists = await this.usersService.findUser(user.email);
+
+    if (userExists) {
+      throw new UnauthorizedException('User already exists')
     }
 
-    const passwordMatches = await bcrypt.compare(password, (await user).password);
+    return this.usersService.createUser(name, email, password);
+  }
+
+  async login(user: UserDto) {
+    const userExists = await this.usersService.findUser(user.email)
+
+    if (!userExists) {
+      throw new UnauthorizedException('User does not exists')
+    } 
+
+    const passwordMatches = await bcrypt.compare(user.password, userExists.password);
 
     if (!passwordMatches) {
-      throw new UnauthorizedException('Invalid credentials')
+      throw new UnauthorizedException('Wrong email/password')
     }
 
-    return user;
+
 
   }
 
