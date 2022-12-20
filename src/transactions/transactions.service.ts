@@ -6,18 +6,18 @@ import { TransactionDto } from './transaction.dto';
 export class TransactionsService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async createTransaction(transaction: TransactionDto, userId: number) {
+  async createTransaction(transaction: TransactionDto, user: any) {
     return (
       await this.prismaService.transaction.create({
-        data: { ...transaction, userId }
+        data: { ...transaction, userId: user.id }
       })
     )
   }
 
-  async getUserTransactions(userId: number) {
+  async getUserTransactions(user: any) {
     return (
       await this.prismaService.transaction.findMany({
-        where: { userId: userId }
+        where: { userId: user.id }
       })
     )
   }

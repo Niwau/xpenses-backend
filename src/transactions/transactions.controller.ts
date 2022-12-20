@@ -10,12 +10,12 @@ export class TransactionsController {
 
   @Post()
   createTransaction(@Body() transaction: TransactionDto, @Req() req: Request){
-    return this.transactionsService.createTransaction(transaction, req.user.id);
+    return this.transactionsService.createTransaction(transaction, req.user);
   }
 
   @Get()
   getTransactions(@Req() req: Request) {
-    return this.transactionsService.getUserTransactions(req.user.id)
+    return this.transactionsService.getUserTransactions(req.user)
   }
 
   @Delete(':id')
