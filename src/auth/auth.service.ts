@@ -1,7 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { UserDto } from 'src/users/users.dto';
 import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken'
 
 @Injectable()
 export class AuthService {
@@ -10,11 +11,9 @@ export class AuthService {
 
   async register(user: UserDto) {
 
-    await this.usersService.validateUser(user)
-
     const { name, email, password } = user;
 
-    const userExists = await this.usersService.findUser(user.email);
+    const userExists = await this.usersService.getUserByEmail(email);
 
     if (userExists) {
       throw new UnauthorizedException('User already exists')
@@ -24,7 +23,14 @@ export class AuthService {
   }
 
   async login(user: UserDto) {
-    const userExists = await this.usersService.findUser(user.email)
+
+    const { email, password } = user;
+
+    if(!email || !password) {
+      throw new BadRequestException('Invalid credentials')
+    }
+
+    const userExists = await this.usersService.getUserByEmail(email)
 
     if (!userExists) {
       throw new UnauthorizedException('User does not exists')
@@ -36,8 +42,20 @@ export class AuthService {
       throw new UnauthorizedException('Wrong email/password')
     }
 
+    const token = jwt.sign(
+      {
+        id: userExists.id,
+        name: userExists.name,
+      },
+      process.env.SECRET, 
+      { 
+        expiresIn: "1d" 
+      }
+    )
 
-
+    return (
+      { message: 'Sucess', token: token }
+    )
   }
 
 }
