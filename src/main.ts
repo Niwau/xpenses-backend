@@ -6,6 +6,6 @@ async function bootstrap() {
   app.enableCors({
     origin: 'https://niwau-xpenses.netlify.app/'
   })
-  await app.listen(3000);
+  await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
